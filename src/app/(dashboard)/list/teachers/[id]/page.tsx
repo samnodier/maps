@@ -3,6 +3,7 @@ import BigCalendar from "@/components/BigCalendar";
 import Announcements from "@/components/Announcements";
 import Link from "next/link";
 import Performance from "@/components/Performance";
+import FormModal from "@/components/FormModal";
 
 const SingleTeacherPage = () => {
     return (
@@ -19,7 +20,26 @@ const SingleTeacherPage = () => {
                                 alt="" width={144} height={144} className="w-36 h-36 rounded-full object-cover"/>
                         </div>
                         <div className="w-2/3 flex flex-col justify-between gap-4">
+                        <div className="flex items-center gap-4">
                             <h1 className="text-xl font-semibold">Leonard Snyder</h1>
+                            <FormModal table="teacher" type="update" data={  {
+    id: 5,
+    username: "1234567890",
+    firstName: "Jane",
+    lastName: "Smith",
+    email: "jane@gmail.com",
+    password: "1234567890",
+    sex: "male",
+    bloodType: "A+",
+    birthday: "2025-01-01",
+    img:
+      "https://images.pexels.com/photos/1102341/pexels-photo-1102341.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    phone: "1234567890",
+    subjects: ["Music", "History"],
+    classes: ["5A", "4B", "3C"],
+    address: "123 Main St, Anytown, USA",
+  }} />
+  </div>
                             <p className="text-sm text-gray-500">Lorem ipsum dolor sit amet, consectetur adipisicing
                                 elit. Ipsam labore maxime, officia perspiciatis quam quas!</p>
                             <div className="flex items-center justify-between gap-2 flex-wrap text-xs font-medium">
