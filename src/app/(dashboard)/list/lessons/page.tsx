@@ -3,16 +3,15 @@ import Image from "next/image";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
-import {lessonsData} from "@/lib/data";
-import {role} from "@/lib/data";
 import FormModal from "@/components/FormModal";
+import { Prisma, Lesson, Class, Teacher, Subject } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { ITEMS_PER_PAGE } from "@/lib/settings";
+import { getRole } from "@/lib/utils";
 
-type Lesson = {
-    id: number;
-    subject: string;
-    class: string;
-    teacher: string;
-}
+const role = await getRole();
+
+type LessonList = Lesson & {class: Class, teacher: Teacher, subject: Subject}
 
 const columns = [
     {
@@ -24,30 +23,83 @@ const columns = [
     {
         header: "Teacher", accessor: "teacher", className: "hidden md:table-cell",
     },
-    {
+    ...(role==="admin" || role==="teacher" ? [{
         header: "Actions", accessor: "actions",
-    },
+    }] : []),
 ];
 
-const LessonListPage = () => {
-
-    const renderRow = (item: Lesson) => (
-        <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-mapPurpleLight">
-            <td className="flex items-center gap-4 p-4">{item.subject}</td>
-            <td>{item.class}</td>
-            <td className="hidden md:table-cell">{item.teacher}</td>
-            <td className="">
-                <div className="flex items-center gap-2">
-                    { role === "admin"  && (
-                    <>
-                    <FormModal table="lesson" type="update" data={item} />
-                    <FormModal table="lesson" type="delete" id={item.id} />
-                    </>
+const renderRow = (item: LessonList) => (
+    <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-mapPurpleLight">
+        <td className="flex items-center gap-4 p-4">{item.subject.name}</td>
+        <td>{item.class.name}</td>
+        <td className="hidden md:table-cell">{item.teacher.name + " " + item.teacher.surname}</td>
+        <td className="">
+            <div className="flex items-center gap-2">
+                { (role === "admin" || role === "teacher") && (
+                <>
+                <FormModal table="lesson" type="update" data={item} />
+                <FormModal table="lesson" type="delete" id={item.id} />
+                </>
 )}
-                </div>
-            </td>
-        </tr>
-    );
+            </div>
+        </td>
+    </tr>
+);
+
+const LessonListPage = async ({ searchParams }: { searchParams: { [key: string]: string | undefined }}) => {
+
+    const {page, ...queryParams} = searchParams;
+    const pageNumber = parseInt(page || "1");
+
+    // URL PARAMS CONDITIONS
+    const query: Prisma.LessonWhereInput = {};
+    if(queryParams) {
+        for (const [key, value] of Object.entries(queryParams)) {
+            if (value !== undefined) {
+                switch(key) {
+                    case "search": {
+                        query.OR = [
+                            {class: {name: {contains: value, mode: "insensitive"}}},
+                            {teacher: {name: {contains: value, mode: "insensitive"}}},
+                            {subject: {name: {contains: value, mode: "insensitive"}}},
+                        ]
+                    }
+                        break;
+                    case "teacherId": {
+                        query.teacherId = value;
+                    }
+                        break;
+                    case "classId": {
+                        query.classId = parseInt(value);
+                    }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+
+    const [lessonsData, totalCount] = await prisma.$transaction([
+    
+    prisma.lesson.findMany({
+        where: query,
+        include: {
+            class: {select: {name: true}},
+            teacher: {select: {name: true, surname: true}},
+            subject: {select: {name: true}},
+        },
+        take: ITEMS_PER_PAGE,
+        skip:  (ITEMS_PER_PAGE * (pageNumber - 1)),
+    }),
+    prisma.lesson.count(
+        {
+            where: query
+        }
+    ),
+    ]);
+    
 
     return (
         <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -73,7 +125,7 @@ const LessonListPage = () => {
                 <Table columns={columns} renderRow={renderRow} data={lessonsData}/>
 
                 {/*PAGINATION*/}
-                <Pagination />
+                <Pagination page={pageNumber} totalCount={totalCount} />
             </div>
         </div>
     )

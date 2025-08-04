@@ -1,19 +1,16 @@
 import TableSearch from "@/components/TableSearch";
 import Image from "next/image";
-import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
-import {eventsData} from "@/lib/data";
-import {role} from "@/lib/data";
+import { Prisma, Event, Class } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { ITEMS_PER_PAGE } from "@/lib/settings";
+import { getCurrentUserId, getRole } from "@/lib/utils";
+import FormModal from "@/components/FormModal";
 
-type Event = {
-    id: number;
-    title: string;
-    class: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-}
+const role = await getRole();
+
+type EventList = Event & {class: Class}
 
 const columns = [
     {
@@ -31,34 +28,100 @@ const columns = [
     {
         header: "End Time", accessor: "endTime", className: "hidden md:table-cell",
     },
-    {
+    ...(role==="admin" ? [{
         header: "Actions", accessor: "actions",
-    },
+    }] : []),
 ];
 
-const EventListPage = () => {
+const renderRow = (item: EventList) => (
+    <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-mapPurpleLight">
+        <td className="flex items-center gap-4 p-4">{item.title}</td>
+        <td>{item.class?.name || "-"}</td>
+        <td className="hidden md:table-cell">{new Intl.DateTimeFormat("en-US", {dateStyle: "medium"}).format(item.startTime)}</td>
+        <td className="hidden md:table-cell">{item.startTime.toLocaleTimeString("en-US", {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        })}</td>
+        <td className="hidden md:table-cell">{item.endTime.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+        })}</td>
+        <td className="">
+            <div className="flex items-center gap-2">
+            { role === "admin" && (
+                <>
+                <FormModal table="event" type="update" data={item} />
+                <FormModal table="event" type="delete" id={item.id} />
+                </>)}
+            </div>
+        </td>
+    </tr>
+);
 
-    const renderRow = (item: Event) => (
-        <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-mapPurpleLight">
-            <td className="flex items-center gap-4 p-4">{item.title}</td>
-            <td>{item.class}</td>
-            <td className="hidden md:table-cell">{item.date}</td>
-            <td className="hidden md:table-cell">{item.startTime}</td>
-            <td className="hidden md:table-cell">{item.endTime}</td>
-            <td className="">
-                <div className="flex items-center gap-2">
-                    <Link href={`/list/teachers/${item.id}`}>
-                        <button className="w-7 h-7 flex items-center justify-center rounded-full bg-mapSky">
-                            <Image src="/edit.png" alt="" width={16} height={16} />
-                        </button>
-                    </Link>
-                    { role === "admin" && (<button className="w-7 h-7 flex items-center justify-center rounded-full bg-mapPurple">
-                        <Image src="/delete.png" alt="" width={16} height={16}/>
-                    </button>)}
-                </div>
-            </td>
-        </tr>
-    );
+const EventListPage = async ({ searchParams }: { searchParams: { [key: string]: string | undefined }}) => {
+
+    const {page, ...queryParams} = searchParams;
+    const pageNumber = parseInt(page || "1");
+
+    // URL PARAMS CONDITIONS
+    const query: Prisma.EventWhereInput = {};
+    if(queryParams) {
+        for (const [key, value] of Object.entries(queryParams)) {
+            if (value !== undefined) {
+                switch(key) {
+                    case "search": {
+                        query.title = {
+                            contains: value,
+                            mode: "insensitive"
+                        }
+                    }
+                    break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    // ROLE CONDITIONS
+    const roleConditions = {
+        teacher: {lessons:{some: {teacherId: await getCurrentUserId()}}},
+        student: {students:{some: {id: await getCurrentUserId()}}},
+        parent: {students:{some: {parentId: await getCurrentUserId()}}},
+    }
+
+    query.OR = [
+  { classId: null },
+  {
+    class: {
+      [role as keyof typeof roleConditions]: {
+        ...roleConditions[role as keyof typeof roleConditions],
+        AND: [{ id: { equals: await getCurrentUserId() } }],
+      },
+    },
+  },
+];
+
+    const [eventsData, totalCount] = await prisma.$transaction([
+    
+    prisma.event.findMany({
+        where: query,
+        include: {
+            class: true,
+        },
+        take: ITEMS_PER_PAGE,
+        skip:  (pageNumber - 1) * ITEMS_PER_PAGE,
+    }),
+    prisma.event.count(
+        {
+            where: query
+        }
+    ),
+    ]);
+
+
 
     return (
         <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -86,7 +149,7 @@ const EventListPage = () => {
                 <Table columns={columns} renderRow={renderRow} data={eventsData}/>
 
                 {/*PAGINATION*/}
-                <Pagination />
+                <Pagination page={pageNumber} totalCount={totalCount} />
             </div>
         </div>
     )
