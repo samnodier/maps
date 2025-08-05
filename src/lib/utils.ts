@@ -53,7 +53,7 @@ export const adjustScheduleToCurrentWeek = (
         adjustedEndDate.setHours(
             lesson.end.getHours(), 
             lesson.end.getMinutes(), 
-            lesson.end.getSeconds(),    
+            lesson.end.getSeconds(),
         ); 
 
         return {

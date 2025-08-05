@@ -10,9 +10,10 @@ import { ITEMS_PER_PAGE } from "@/lib/settings";
 import FormModal from "@/components/FormModal";
 import { getCurrentUserId, getRole } from "@/lib/utils";
 
-const role = await getRole();
 
 type AnnouncementList = Announcement & { class: Class }
+const AnnouncementListPage = async ({ searchParams }: { searchParams: { [key: string]: string | undefined } }) => {
+    const role = await getRole();
 
 const columns = [
     {
@@ -47,7 +48,6 @@ const renderRow = (item: AnnouncementList) => (
     </tr>
 );
 
-const AnnouncementListPage = async ({ searchParams }: { searchParams: { [key: string]: string | undefined } }) => {
 
     const { page, ...queryParams } = searchParams;
     const pageNumber = parseInt(page || "1");
@@ -58,12 +58,11 @@ const AnnouncementListPage = async ({ searchParams }: { searchParams: { [key: st
         for (const [key, value] of Object.entries(queryParams)) {
             if (value !== undefined) {
                 switch (key) {
-                    case "search": {
+                    case "search": 
                         query.title = {
                             contains: value,
-                            mode: "insensitive"
+                             mode: "insensitive"
                         }
-                    }
                         break;
                     default:
                         break;
@@ -80,10 +79,11 @@ const AnnouncementListPage = async ({ searchParams }: { searchParams: { [key: st
     }
 
     query.OR = [
-        { classId: null }, {
-            class: roleConditions[role as keyof typeof roleConditions] || {}
+        { classId: null },
+        {
+            class: roleConditions[role as keyof typeof roleConditions] || {},
         }
-    ]
+    ];
 
 
 

@@ -5,6 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import InputField from "../InputField";
 import Image from "next/image";
+import { Dispatch, SetStateAction, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import { useFormState } from "react-dom";
+import { createSubject } from "@/lib/actions";
 
 const schema = z.object({
     username: z
@@ -28,7 +33,7 @@ const schema = z.object({
 
 type Inputs = z.infer<typeof schema>;
 
-const TeacherForm = ({ type, data }: { type: "create" | "update"; data?: any }) => {
+const TeacherForm = ({ type, data, setOpen }: { type: "create" | "update"; data?: any; setOpen: Dispatch<SetStateAction<boolean>>  }) => {
 
     const {
         register,
@@ -38,10 +43,26 @@ const TeacherForm = ({ type, data }: { type: "create" | "update"; data?: any }) 
         resolver: zodResolver(schema),
     });
 
+    const [state, formAction] = useFormState(createTeacher, { success: false, error: false });
+
     const onSubmit = handleSubmit(data => {
         console.log(data);
+        formAction(data);
     });
 
+    const router = useRouter();
+
+    useEffect(() => {
+        if (state.success) {
+            toast(`Teacher has been ${type === "create" ? "created" : "updated"} successfully!`, {
+                type: "success",
+            });
+            setOpen(false);
+            router.refresh();
+        }
+    }, [state.success]);
+
+    
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-8">
             <h1 className="text-xl font-semibold">Create a new teacher</h1>

@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache";
-import { SubjectSchema } from "./formValidationSchemas";
+import { SubjectSchema, TeacherSchema } from "./formValidationSchemas";
 import { prisma } from "./prisma";
 import { boolean } from "zod";
 
@@ -12,7 +12,10 @@ export const createSubject = async (currentState: currentState, data: SubjectSch
     try {
         await prisma.subject.create({
             data: {
-                name: data.name
+                name: data.name,
+                teachers: {
+                    connect: data.teachers.map((teacherId: string) => ({ id: teacherId }))
+                }
             }
         });
         // revalidatePath("/list/subjects");
@@ -31,7 +34,10 @@ export const updateSubject = async (currentState: currentState, data: SubjectSch
                 id: data.id
             },
             data: {
-                name: data.name
+                name: data.name,
+                teachers: {
+                    set: data.teachers.map((teacherId: string) => ({ id: teacherId }))
+                }
             }
         });
         // revalidatePath("/list/subjects");
@@ -58,3 +64,23 @@ export const deleteSubject = async (currentState: currentState, data: FormData) 
         return{success: false, error: true};
     }
 }
+
+
+
+// Create Teacher
+// export const createTeacher = async (currentState: currentState, data: TeacherSchema) => {
+//     try {
+//         await prisma.teacher.create({
+//             data: {
+//                 username: data.username,
+//                 email: data.email,
+//                 password: data.password,
+//             }
+//         });
+//         // revalidatePath("/list/teachers");
+//         return { success: true, error: false };
+//     } catch (error) {
+//         console.log(error);
+//         return { success: false, error: true };
+//     }
+// }
