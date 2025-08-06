@@ -50,6 +50,8 @@ model Teacher {
   sex       UserSex
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  dateOfBirth DateTime
+  
   subjects  Subject[]
   lessons   Lesson[]
   classes   Class[]
