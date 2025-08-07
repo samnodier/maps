@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import FormModal from "./FormModal";
+import { getCurrentUserId, getRole } from "@/lib/utils";
 
 export type FormContainerProps = {
     table: "teacher" | "student" | "parent" | "subject" | "class" | "lesson" | "exam" | "assignment" | "result" | "attendance" | "event" | "announcement";
@@ -11,8 +12,11 @@ export type FormContainerProps = {
 
 
 const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
+
     let relatedData = {};
 
+    const role = await getRole();
+    const userId = await getCurrentUserId();
 
     if (type !== "delete") {
         switch (table) {
@@ -50,6 +54,8 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
                         name: true,
                     }
                 });
+                relatedData = { subjects: teacherSubjects }
+                break;
             case "student":
                 const studentGrades = await prisma.grade.findMany({
                     select: {
@@ -58,10 +64,26 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
                     }
                 });
                 const studentClasses = await prisma.class.findMany({
-                    include: {_count: { select: { students: true } } },
+                    include: { _count: { select: { students: true } } },
                 });
 
                 relatedData = { grades: studentGrades, classes: studentClasses };
+                break;
+            case "exam":
+
+
+
+                const examLessons = await prisma.lesson.findMany({
+                    where: {
+                        ...(role === "teacher" ? { teacherId: userId! } : {}),
+                    },
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                });
+
+                relatedData = { lessons: examLessons };
                 break;
             default:
                 break;

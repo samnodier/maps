@@ -8,48 +8,48 @@ import { prisma } from "@/lib/prisma";
 import { ITEMS_PER_PAGE } from "@/lib/settings";
 import { getRole } from "@/lib/utils";
 
-const role = await getRole();
-
 type ClassList = Class & {supervisor: Teacher}
 
-const columns = [
-    {
-        header: "Class Name", accessor: "name"
-    },
-    {
-        header: "Capacity", accessor: "capacity", className: "hidden md:table-cell",
-    },
-    {
-        header: "Grade", accessor: "grade", className: "hidden md:table-cell",
-    },
-    {
-        header: "Supervisor", accessor: "supervisor", className: "hidden md:table-cell",
-    },
-    ...(role==="admin" ? [{
-        header: "Actions", accessor: "actions",
-    }] : []),
-];
-
-const renderRow = (item: ClassList) => (
-    <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-mapPurpleLight">
-        <td className="flex items-center gap-4 p-4">{item.name}</td>
-        <td className="hidden md:table-cell">{item.capacity}</td>
-        <td className="hidden md:table-cell">{item.gradeId}</td>
-        <td className="hidden md:table-cell">{item.supervisor.name + " " + item.supervisor.surname}</td>
-        <td className="">
-            <div className="flex items-center gap-2">
-                { role === "admin" && (
-                    <>
-                        <FormContainer table="class" type="update" data={item} />
-                        <FormContainer table="class" type="delete" id={item.id} />
-                    </>
-                )}
-            </div>
-        </td>
-    </tr>
-);
-
 const ClassListPage = async ({ searchParams }: { searchParams: { [key: string]: string | undefined }}) => {
+    
+    const role = await getRole();
+    
+    const columns = [
+        {
+            header: "Class Name", accessor: "name"
+        },
+        {
+            header: "Capacity", accessor: "capacity", className: "hidden md:table-cell",
+        },
+        {
+            header: "Grade", accessor: "grade", className: "hidden md:table-cell",
+        },
+        {
+            header: "Supervisor", accessor: "supervisor", className: "hidden md:table-cell",
+        },
+        ...(role==="admin" ? [{
+            header: "Actions", accessor: "actions",
+        }] : []),
+    ];
+    
+    const renderRow = (item: ClassList) => (
+        <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-mapPurpleLight">
+            <td className="flex items-center gap-4 p-4">{item.name}</td>
+            <td className="hidden md:table-cell">{item.capacity}</td>
+            <td className="hidden md:table-cell">{item.gradeId}</td>
+            <td className="hidden md:table-cell">{item.supervisor.name + " " + item.supervisor.surname}</td>
+            <td className="">
+                <div className="flex items-center gap-2">
+                    { role === "admin" && (
+                        <>
+                            <FormContainer table="class" type="update" data={item} />
+                            <FormContainer table="class" type="delete" id={item.id} />
+                        </>
+                    )}
+                </div>
+            </td>
+        </tr>
+    );
 
     const {page, ...queryParams} = searchParams;
     const pageNumber = parseInt(page || "1");
@@ -106,11 +106,19 @@ const ClassListPage = async ({ searchParams }: { searchParams: { [key: string]: 
                     <div className="flex flex-col md:flex-row items-center gap-4  w-full md:w-auto">
                         <TableSearch />
                         <div className="flex items-center gap-4 self-end">
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-mapYellow">
-                                <Image src="/filter.png" alt="" width={14} height={14} />
+                            <button
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-mapYellow"
+                                title="Filter"
+                                aria-label="Filter"
+                            >
+                                <Image src="/filter.png" alt="Filter" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-mapYellow">
-                                <Image src="/sort.png" alt="" width={14} height={14} />
+                            <button
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-mapYellow"
+                                title="Sort"
+                                aria-label="Sort"
+                            >
+                                <Image src="/sort.png" alt="Sort" width={14} height={14} />
                             </button>
                             {role==="admin" && (<FormContainer table="class" type="create" />)}
                         </div>

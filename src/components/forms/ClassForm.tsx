@@ -49,7 +49,7 @@ const ClassForm = ({
             setOpen(false);
             router.refresh();
         }
-    }, [state]);
+    }, [state.success, type, setOpen, router]);
 
     const { teachers, grades } = relatedData;
 

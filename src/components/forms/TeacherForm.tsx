@@ -12,7 +12,6 @@ import { createTeacher, updateTeacher } from "@/lib/actions";
 import { teacherSchema, TeacherSchema } from "@/lib/formValidationSchemas";
 import { CldUploadWidget } from "next-cloudinary";
 
-
 const TeacherForm = ({
     type,
     data,
@@ -39,7 +38,7 @@ const TeacherForm = ({
 
     const onSubmit = handleSubmit(data => {
         console.log(data);
-        formAction({...data, img:img?.secure_url});
+        formAction({ ...data, img: img?.secure_url });
     });
 
     const router = useRouter();
@@ -52,11 +51,9 @@ const TeacherForm = ({
             setOpen(false);
             router.refresh();
         }
-    }, [state.success]);
+    }, [state.success, type, setOpen, router]);
 
     const { subjects } = relatedData;
-
-
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-8">
@@ -128,13 +125,13 @@ const TeacherForm = ({
                     label="Birthday"
                     name="dateOfBirth"
                     type="date"
-                    defaultValue={data?.dateOfBirth 
-                        ? new Date(data.dateOfBirth).toISOString().split("T")[0] 
+                    defaultValue={data?.dateOfBirth
+                        ? new Date(data.dateOfBirth).toISOString().split("T")[0]
                         : ""}
                     register={register}
                     error={errors?.dateOfBirth?.message}
                 />
-                 {data && (<InputField
+                {data && (<InputField
                     label="Id"
                     name="id"
                     defaultValue={data?.id}
@@ -153,13 +150,18 @@ const TeacherForm = ({
                 </div>
                 <div className="flex flex-col gap-2 w-full md:w-1/4">
                     <label className="text-xs text-gray-500">Subjects</label>
-                    <select multiple className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full" {...register("subjects")} defaultValue={data?.subjects}>
+                    <select
+                        multiple
+                        className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
+                        {...register("subjects")}
+                        defaultValue={data?.subjects}
+                    >
                         {subjects.map((subject: { id: number; name: string }) => (<option key={subject.id} value={subject.id}>{subject.name}</option>))}
                     </select>
                     {errors.subjects && (<p className="text-xs text-red-400">{errors.subjects.message}</p>)}
                 </div>
 
-                <CldUploadWidget uploadPreset="mapsproject" onSuccess = {(result, {widget})=>{
+                <CldUploadWidget uploadPreset="mapsproject" onSuccess={(result, { widget }) => {
                     widget.close()
                     setImg(result.info)
                 }}>
@@ -181,7 +183,7 @@ const TeacherForm = ({
                     }}
                 </CldUploadWidget>
             </div>
-                        {state.error && <span className="text-red-500">An error occurred while processing your request.</span>}
+            {state.error && <span className="text-red-500">An error occurred while processing your request.</span>}
 
             <button className="bg-blue-400 text-white p-2 rounded-md">{type === "create" ? "Create" : "Update"}</button>
         </form>

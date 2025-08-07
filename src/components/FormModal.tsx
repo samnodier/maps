@@ -1,6 +1,6 @@
 "use client"
 
-import { deleteSubject, deleteClass, deleteTeacher } from "@/lib/actions";
+import { deleteSubject, deleteClass, deleteTeacher, deleteExam } from "@/lib/actions";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Dispatch, SetStateAction, useState, useEffect } from 'react';
@@ -16,7 +16,7 @@ const deleteActionMap = {
     subject: deleteSubject,
     class: deleteClass,
     lesson: deleteSubject,
-    exam: deleteSubject,
+    exam: deleteExam,
     assignment: deleteSubject,
     result: deleteSubject,
     attendance: deleteSubject,
@@ -47,16 +47,16 @@ const forms: {
 } = {
     teacher: (setOpen, type, data, relatedData) => <TeacherForm setOpen={setOpen} type={type} data={data} relatedData = {relatedData} />,
     student: (setOpen, type, data, relatedData) => <StudentForm setOpen={setOpen} type={type} data={data} relatedData = {relatedData} />,
-    parent: (setOpen, type, data) => <ParentForm setOpen={setOpen} type={type} data={data} />,
+    // parent: (setOpen, type, data) => <ParentForm setOpen={setOpen} type={type} data={data} />,
     subject: (setOpen, type, data, relatedData) => <SubjectForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />,
     class: (setOpen, type, data, relatedData) => <ClassForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />,
-    lesson: (setOpen, type, data) => <LessonForm setOpen={setOpen} type={type} data={data} />,
-    exam: (setOpen, type, data) => <ExamForm setOpen={setOpen} type={type} data={data} />,
-    assignment: (setOpen, type, data) => <AssignmentForm setOpen={setOpen} type={type} data={data} />,
-    result: (setOpen, type, data) => <ResultForm setOpen={setOpen} type={type} data={data} />,
-    attendance: (setOpen, type, data) => <AttendanceForm setOpen={setOpen} type={type} data={data} />,
-    event: (setOpen, type, data) => <EventForm setOpen={setOpen} type={type} data={data} />,
-    announcement: (setOpen, type, data) => <AnnouncementForm setOpen={setOpen} type={type} data={data} />,
+    // lesson: (setOpen, type, data) => <LessonForm setOpen={setOpen} type={type} data={data} />,
+    exam: (setOpen, type, data, relatedData) => <ExamForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />,
+    // assignment: (setOpen, type, data) => <AssignmentForm setOpen={setOpen} type={type} data={data} />,
+    // result: (setOpen, type, data) => <ResultForm setOpen={setOpen} type={type} data={data} />,
+    // attendance: (setOpen, type, data) => <AttendanceForm setOpen={setOpen} type={type} data={data} />,
+    // event: (setOpen, type, data) => <EventForm setOpen={setOpen} type={type} data={data} />,
+    // announcement: (setOpen, type, data) => <AnnouncementForm setOpen={setOpen} type={type} data={data} />,
 }
 
 const FormModal = ({ table, type, data, id, relatedData }: FormContainerProps & { relatedData?: any }) => {
@@ -82,7 +82,7 @@ const FormModal = ({ table, type, data, id, relatedData }: FormContainerProps & 
                 setOpen(false);
                 router.refresh();
             }
-        }, [state.success]);
+        }, [state.success, router]);
 
         return type === "delete" && id ? (
             <form action={formAction} className="p-4 flex flex-col gap-4">
@@ -94,8 +94,10 @@ const FormModal = ({ table, type, data, id, relatedData }: FormContainerProps & 
     }
     return (
         <>
-            <button className={`${size} flex items-center justify-center rounded-full ${bgColor}`}
+            <button
+                className={`${size} flex items-center justify-center rounded-full ${bgColor}`}
                 onClick={() => setOpen(true)}
+                title={type.charAt(0).toUpperCase() + type.slice(1)}
             >
                 <Image src={`/${type}.png`} alt="" width={16} height={16} />
             </button>

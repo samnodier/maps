@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: maps_user
+      POSTGRES_PASSWORD: maps_password
+      POSTGRES_DB: maps_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  app:
+    container_name: nextjs_app
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL="postgres://maps_user:maps_password@localhost:5432/maps_db"
+    depends_on:
+      - postgres

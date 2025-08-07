@@ -73,6 +73,7 @@ const renderRow = (item: AnnouncementList) => (
 
     // ROLE CONDITIONS
     const roleConditions = {
+        admin: {},
         teacher: { lessons: { some: { teacherId: await getCurrentUserId() } } },
         student: { students: { some: { id: await getCurrentUserId() } } },
         parent: { students: { some: { parentId: await getCurrentUserId() } } },
@@ -115,11 +116,19 @@ const renderRow = (item: AnnouncementList) => (
                     <div className="flex flex-col md:flex-row items-center gap-4  w-full md:w-auto">
                         <TableSearch />
                         <div className="flex items-center gap-4 self-end">
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-mapYellow">
-                                <Image src="/filter.png" alt="" width={14} height={14} />
+                            <button
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-mapYellow"
+                                title="Filter"
+                                aria-label="Filter"
+                            >
+                                <Image src="/filter.png" alt="Filter" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-mapYellow">
-                                <Image src="/sort.png" alt="" width={14} height={14} />
+                            <button
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-mapYellow"
+                                title="Sort"
+                                aria-label="Sort"
+                            >
+                                <Image src="/sort.png" alt="Sort" width={14} height={14} />
                             </button>
                             {role === "admin" && (<FormModal table="announcement" type="create" />)}
                         </div>
